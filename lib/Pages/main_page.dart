@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:translate/Constants/constants.dart';
 import 'package:translator/translator.dart';
-import '';
 
 class MainPage extends StatefulWidget {
   const MainPage({Key? key}) : super(key: key);
@@ -24,7 +23,6 @@ class _MainPageState extends State<MainPage> {
 
   // --- Languages ---
 
-  List<String> _supportedLanguages = ["Norwegian", "English", "Danish"];
   String _fromLanguage = "";
   String _toLanguage = "";
 
@@ -48,11 +46,17 @@ class _MainPageState extends State<MainPage> {
 
   @override
   void initState() {
+    initializeLanguages();
     _loadSharedPrefs();
     super.initState();
   }
 
   // --- Logic functions ---
+
+  void initializeLanguages(){
+    _fromLanguage = kSupportedLanguages.Norwegian.toName();
+    _toLanguage = kSupportedLanguages.Norwegian.toName();
+  }
 
   void _loadSharedPrefs() async {
     _prefs = await SharedPreferences.getInstance();
@@ -66,7 +70,7 @@ class _MainPageState extends State<MainPage> {
     var to = _toLanguage;
     var from = _fromLanguage;
 
-    if(to != "" && from != ""){
+    if(to != from){
       setState(() {
         _toLanguage = from;
         _fromLanguage = to;
@@ -87,6 +91,7 @@ class _MainPageState extends State<MainPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: _appBar(),
 
 
       body: Center(
@@ -96,13 +101,23 @@ class _MainPageState extends State<MainPage> {
         child: Column(
           children: [
 
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+
+              children: [
+                _dropDownButton(kToOrFrom.FROM),
+                IconButton(icon: kChangeIcon, onPressed: () {
+                  _switchLanguage();
+                }),
+                _dropDownButton(kToOrFrom.TO),
+              ],
+            ),
+            Divider(),
+
 
             _searchField(),
-            _dropDownButton(_supportedLanguages, kToOrFrom.FROM),
-            IconButton(icon: kChangeIcon, onPressed: () {
-              _switchLanguage();
-            }),
-            _dropDownButton(_supportedLanguages, kToOrFrom.TO),
+            Divider(),
+
           ],
         ),
       ),
@@ -114,52 +129,70 @@ class _MainPageState extends State<MainPage> {
 
   // --- Component functions ---
 
-  Widget _dropDownButton(List<String> items, kToOrFrom toOrFrom){
-    
+  AppBar _appBar(){
+    return AppBar(
+      title: Text("Translate"),
+    );
+  }
+
+  Widget _dropDownButton(kToOrFrom toOrFrom){
+
+    var suppLang = kSupportedLanguages.values.map((e) => e.toName()).toList();
+
     String hint = "";
     if(toOrFrom == kToOrFrom.TO){
       hint = _toLanguage;
     } else {
       hint = _fromLanguage;
     }
-    
-    return DropdownButton(
-      
-      hint: hint == ""
-      ? Text("Please choose a language")
-      : Text(hint),
-        items: items.map((String value) {
-          return DropdownMenuItem<String>(
-            value: value,
-            child: Text(value),
-          );
-        }).toList(),
-      onChanged: (newValue){
-        if(newValue != null){
-          setState(() {
-            if(toOrFrom == kToOrFrom.TO){
-              _toLanguage = newValue.toString();
-            } else {
-              _fromLanguage = newValue.toString();
-            }
-          });
-        }
-      },
+
+    return Expanded(
+      child: Container(
+        margin: EdgeInsets.symmetric(vertical: 12),
+        child: DropdownButtonHideUnderline(
+          child: DropdownButton(
+
+            isExpanded: true,
+            style: TextStyle(color: Colors.blueGrey),
+
+            hint: Text(hint),
+              items: suppLang.map((String value) {
+                return DropdownMenuItem<String>(
+                  value: value,
+                  child: Text(value),
+                );
+              }).toList(),
+            onChanged: (newValue){
+              if(newValue != null){
+                setState(() {
+                  if(toOrFrom == kToOrFrom.TO){
+                    _toLanguage = newValue.toString();
+                    print(_toLanguage);
+                  } else {
+                    _fromLanguage = newValue.toString();
+                  }
+                });
+              }
+            },
+          ),
+        ),
+      ),
     );
   }
 
   Widget _searchField(){
-    return Padding(
-      padding: EdgeInsets.only(top: 16.0, left: 8.0, right: 8.0),
+    return Card(
+      elevation: 0.0,
       child: TextField(
+        maxLines: 5,
         controller: _textFieldController,
         onChanged: _foo,
 
         // textInputAction: TextInputAction.done,
         autocorrect: false,
-        decoration: InputDecoration(
-          hintText: "Input to search",
-        ),
+        // decoration: InputDecoration(
+        //   hintText: "Input to search",
+        // ),
       ),
     );
   }
