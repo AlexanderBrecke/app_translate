@@ -2,8 +2,14 @@ import 'package:flutter/material.dart';
 
 final kAppTheme = ThemeData.light().copyWith(
   highlightColor: Colors.green,
-  backgroundColor: Colors.blueGrey,
+  primaryColor: Colors.blue[600],
   scaffoldBackgroundColor: Colors.grey[300],
+);
+
+final kNewAppTheme = ThemeData(
+  primarySwatch: Colors.blue,
+  primaryColor: Colors.blue[600],
+  scaffoldBackgroundColor: Colors.grey[300]
 );
 
 enum kToOrFrom{
@@ -11,6 +17,7 @@ enum kToOrFrom{
   FROM,
 }
 
+// supported languages
 enum kSupportedLanguages{
   Norwegian,
   English,
@@ -43,10 +50,27 @@ extension kLanguageShort on kSupportedLanguages{
   }
 }
 
+// ---
+
+
 // icons
 
 Icon kChangeIcon = const Icon(Icons.autorenew_outlined);
 Icon kStarEmpty = const Icon(Icons.star_outline);
 Icon kStarFilled = const Icon(Icons.star);
+
+// ---
+
+// text
+
+TextStyle kTranslationTextStyle(double size, FontWeight weight){
+  return TextStyle(
+    fontSize: size,
+    fontWeight: weight,
+    color: Colors.white,
+  );
+}
+
+
 
 // ---

@@ -16,8 +16,9 @@ class TranslateApp extends StatelessWidget {
       create: (context) => AppDataModel(),
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
-        theme: kAppTheme,
+        theme: kNewAppTheme,
         home: MainPage(),
+
       ),
     );
   }

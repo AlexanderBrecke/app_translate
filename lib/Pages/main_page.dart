@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:translate/Constants/constants.dart';
+import 'package:translate/Models/app_data_model.dart';
+import 'package:translate/Views/dropdownbutton.dart';
+import 'package:translate/Views/input_card_view.dart';
+import 'package:translate/Views/translate_card_view.dart';
 import 'package:translator/translator.dart';
+import 'package:provider/provider.dart';
 
 class MainPage extends StatefulWidget {
   const MainPage({Key? key}) : super(key: key);
@@ -21,21 +26,6 @@ class _MainPageState extends State<MainPage> {
   // --- ---
 
 
-  // --- Languages ---
-
-  String _fromLanguage = "";
-  String _toLanguage = "";
-
-  // --- ---
-
-
-  // --- Controllers ---
-
-  final _textFieldController = TextEditingController();
-
-  // --- ---
-
-
 
   bool _isLoading = true;
 
@@ -46,17 +36,11 @@ class _MainPageState extends State<MainPage> {
 
   @override
   void initState() {
-    initializeLanguages();
     _loadSharedPrefs();
     super.initState();
   }
 
   // --- Logic functions ---
-
-  void initializeLanguages(){
-    _fromLanguage = kSupportedLanguages.Norwegian.toName();
-    _toLanguage = kSupportedLanguages.Norwegian.toName();
-  }
 
   void _loadSharedPrefs() async {
     _prefs = await SharedPreferences.getInstance();
@@ -66,17 +50,6 @@ class _MainPageState extends State<MainPage> {
     });
   }
 
-  void _switchLanguage(){
-    var to = _toLanguage;
-    var from = _fromLanguage;
-
-    if(to != from){
-      setState(() {
-        _toLanguage = from;
-        _fromLanguage = to;
-      });
-    }
-  }
 
   // --- ---
 
@@ -90,13 +63,12 @@ class _MainPageState extends State<MainPage> {
   // --- Page ---
   @override
   Widget build(BuildContext context) {
+
     return Scaffold(
       appBar: _appBar(),
 
 
       body: Center(
-
-
 
         child: Column(
           children: [
@@ -105,18 +77,26 @@ class _MainPageState extends State<MainPage> {
               mainAxisAlignment: MainAxisAlignment.center,
 
               children: [
-                _dropDownButton(kToOrFrom.FROM),
+                CustomDropDownButton(kToOrFrom.FROM),
                 IconButton(icon: kChangeIcon, onPressed: () {
-                  _switchLanguage();
+                  Provider.of<AppDataModel>(context, listen: false).switchLanguages();
                 }),
-                _dropDownButton(kToOrFrom.TO),
+                CustomDropDownButton(kToOrFrom.TO),
               ],
             ),
             Divider(),
 
+            InputCardView(),
 
-            _searchField(),
             Divider(),
+
+            if(Provider.of<AppDataModel>(context).textFieldController.text != "") ... [
+              TranslateCard(),
+              Divider(),
+            ]
+
+            //Provider.of<AppDataModel>(context).textFieldController.text != "" ? TranslateCard() : SizedBox(),
+
 
           ],
         ),
@@ -132,68 +112,7 @@ class _MainPageState extends State<MainPage> {
   AppBar _appBar(){
     return AppBar(
       title: Text("Translate"),
-    );
-  }
-
-  Widget _dropDownButton(kToOrFrom toOrFrom){
-
-    var suppLang = kSupportedLanguages.values.map((e) => e.toName()).toList();
-
-    String hint = "";
-    if(toOrFrom == kToOrFrom.TO){
-      hint = _toLanguage;
-    } else {
-      hint = _fromLanguage;
-    }
-
-    return Expanded(
-      child: Container(
-        margin: EdgeInsets.symmetric(vertical: 12),
-        child: DropdownButtonHideUnderline(
-          child: DropdownButton(
-
-            isExpanded: true,
-            style: TextStyle(color: Colors.blueGrey),
-
-            hint: Text(hint),
-              items: suppLang.map((String value) {
-                return DropdownMenuItem<String>(
-                  value: value,
-                  child: Text(value),
-                );
-              }).toList(),
-            onChanged: (newValue){
-              if(newValue != null){
-                setState(() {
-                  if(toOrFrom == kToOrFrom.TO){
-                    _toLanguage = newValue.toString();
-                    print(_toLanguage);
-                  } else {
-                    _fromLanguage = newValue.toString();
-                  }
-                });
-              }
-            },
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _searchField(){
-    return Card(
       elevation: 0.0,
-      child: TextField(
-        maxLines: 5,
-        controller: _textFieldController,
-        onChanged: _foo,
-
-        // textInputAction: TextInputAction.done,
-        autocorrect: false,
-        // decoration: InputDecoration(
-        //   hintText: "Input to search",
-        // ),
-      ),
     );
   }
 
