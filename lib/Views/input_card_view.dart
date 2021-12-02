@@ -18,13 +18,11 @@ class InputCardView extends StatelessWidget {
       child: TextField(
         maxLines: 3,
         controller: provider.textFieldController,
-        onChanged: provider.foo,
+        // onChanged: provider.foo,
 
         textInputAction: TextInputAction.done,
+        onSubmitted: provider.translate,
         autocorrect: false,
-        // decoration: InputDecoration(
-        //   hintText: "Input to search",
-        // ),
       ),
     );
   }

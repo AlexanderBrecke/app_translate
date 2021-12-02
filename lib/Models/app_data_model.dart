@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:translate/Constants/constants.dart';
+import 'package:translate/Models/translation_model.dart';
+import 'package:translator/translator.dart';
 
 class AppDataModel extends ChangeNotifier{
 
@@ -41,11 +43,42 @@ class AppDataModel extends ChangeNotifier{
 
   final textFieldController = TextEditingController();
 
-  void foo(String input){
-    print(textFieldController.text);
+  // ---
+
+
+// translation handling
+
+  final translator = GoogleTranslator();
+  Translation? currentTranslation;
+
+  void translate(String input){
+
+    if(textFieldController.text != ""){
+      translator.translate(textFieldController.text, from: fromLanguage.getValue(), to: toLanguage.getValue()).then((value) {
+        currentTranslation = value;
+        _addToHistory(value);
+        notifyListeners();
+      });
+    } else {
+      currentTranslation = null;
+      notifyListeners();
+    }
+
+  }
+
+
+// ---
+
+// translation history
+
+  List<TranslationModel> history = [];
+
+  void _addToHistory(Translation translation){
+    history.add(TranslationModel(translation));
+    print(history.length);
     notifyListeners();
   }
 
-  // ---
+// ---
 
 }

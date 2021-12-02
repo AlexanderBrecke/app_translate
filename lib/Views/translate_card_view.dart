@@ -14,7 +14,6 @@ class TranslateCard extends StatelessWidget {
   Widget _translationCard(BuildContext context){
 
     final provider = Provider.of<AppDataModel>(context);
-    final input = provider.textFieldController.text;
 
     return Card(
       color: Colors.blue[600],
@@ -27,16 +26,16 @@ class TranslateCard extends StatelessWidget {
           children: [
 
             Padding(
-                padding: EdgeInsets.symmetric(horizontal: 8.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _translationTop(provider),
-                    _translateText(input),
-                    SizedBox(height: 1/50 * MediaQuery.of(context).size.height),
-                    _fromText(input),
-                  ],
-                )
+              padding: EdgeInsets.symmetric(horizontal: 8.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _languageTitle(provider),
+                  _translationText(provider),
+                  SizedBox(height: 1/100 * MediaQuery.of(context).size.height),
+                  _sourceText(provider),
+                ],
+              )
             ),
           ],
         ),
@@ -44,20 +43,19 @@ class TranslateCard extends StatelessWidget {
     );
   }
   
-  Widget _translateText(String input){
+  Widget _translationText(AppDataModel provider){
     return Text(
-        input,
+        provider.currentTranslation!.text,
       style: kTranslationTextStyle(14.0, FontWeight.normal),
     );
   }
 
-  Widget _translationTop(AppDataModel provider){
+  Widget _languageTitle(AppDataModel provider){
     return Row(
       children: [
         Text(
-            provider.toLanguage.toName(),
-          style: kTranslationTextStyle(16.0, FontWeight.w200),
-
+          provider.currentTranslation!.targetLanguage.name,
+          style: kTranslationTextStyle(14.0, FontWeight.w300),
         ),
         Spacer(),
         IconButton(icon: kStarEmpty, color:Colors.white, onPressed: (){
@@ -66,11 +64,14 @@ class TranslateCard extends StatelessWidget {
       ],
     );
   }
+
+  Widget _sourceText(AppDataModel provider){
+    return Text(
+      provider.currentTranslation!.source,
+      style: kTranslationTextStyle(10.0, FontWeight.w300),
+    );
+  }
+
 }
 
-Widget _fromText(String input){
-  return Text(
-    input,
-    style: kTranslationTextStyle(10.0, FontWeight.w200),
-  );
-}
+
