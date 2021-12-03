@@ -21,7 +21,14 @@ class InputCardView extends StatelessWidget {
         // onChanged: provider.foo,
 
         textInputAction: TextInputAction.done,
-        onSubmitted: provider.translate,
+
+        onChanged: (newVal){
+          provider.throttledTranslate(newVal);
+        },
+
+        onSubmitted: (newVal){
+          provider.historyAdd();
+        },
         autocorrect: false,
       ),
     );

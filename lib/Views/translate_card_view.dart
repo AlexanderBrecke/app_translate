@@ -58,9 +58,10 @@ class TranslateCard extends StatelessWidget {
           style: kTranslationTextStyle(14.0, FontWeight.w300),
         ),
         Spacer(),
-        IconButton(icon: kStarEmpty, color:Colors.white, onPressed: (){
 
-        }),
+        IconButton(onPressed:() {
+          provider.setFavorite(provider.currentTranslationModel!);
+        }, icon: provider.currentIsFavorite() ? kStarFilled : kStarEmpty),
       ],
     );
   }

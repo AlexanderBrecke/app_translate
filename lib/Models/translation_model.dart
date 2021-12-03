@@ -10,5 +10,21 @@ class TranslationModel{
     isFavorite = !isFavorite;
   }
 
+  static TranslationModel fromJson2(dynamic json) {
+    return TranslationModel(json["translation"]);
+  }
 
+  TranslationModel.fromJson(Map<String, dynamic> json)
+      : translation = json["translation"],
+        isFavorite = json["isFavorite"];
+
+  Map<String, dynamic> toJson() => {
+    "translation": {
+      "text": translation.text,
+      "source": translation.source,
+      "targetLanguage": translation.targetLanguage,
+      "sourceLanguage": translation.sourceLanguage
+    },
+    'isFavorite': isFavorite,
+  };
 }

@@ -1,9 +1,16 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:translate/Constants/constants.dart';
 import 'package:translate/Models/translation_model.dart';
 import 'package:translator/translator.dart';
 
 class AppDataModel extends ChangeNotifier{
+
+  // AppDataModel(){
+  //   readFromSharedPrefs();
+  // }
 
   // Language handling
 
@@ -51,19 +58,43 @@ class AppDataModel extends ChangeNotifier{
   final translator = GoogleTranslator();
   Translation? currentTranslation;
 
+  TranslationModel? currentTranslationModel;
+  
+  void throttledTranslate(String input){
+    Future.delayed(Duration(milliseconds: 500), () {
+      if(input == textFieldController.text){
+        translate(input);
+      } else {
+        translate(textFieldController.text);
+      }
+    });
+  }
+
+
   void translate(String input){
 
     if(textFieldController.text != ""){
+
       translator.translate(textFieldController.text, from: fromLanguage.getValue(), to: toLanguage.getValue()).then((value) {
+
         currentTranslation = value;
-        _addToHistory(value);
+        TranslationModel model = TranslationModel(value);
+        currentTranslationModel = model;
         notifyListeners();
       });
     } else {
       currentTranslation = null;
+      currentTranslationModel = null;
       notifyListeners();
     }
 
+  }
+
+  void historyAdd(){
+    if(!history.contains(currentTranslationModel!)){
+      history.add(currentTranslationModel!);
+    }
+    notifyListeners();
   }
 
 
@@ -73,11 +104,72 @@ class AppDataModel extends ChangeNotifier{
 
   List<TranslationModel> history = [];
 
-  void _addToHistory(Translation translation){
-    history.add(TranslationModel(translation));
-    print(history.length);
+  void _addToHistory(TranslationModel translation){
+    history.add(translation);
+    // saveToSharedPrefs();
     notifyListeners();
   }
+
+  bool currentIsInHistory(){
+    return history.contains(currentTranslationModel);
+  }
+
+  bool currentIsFavorite(){
+    return currentTranslationModel!.isFavorite;
+  }
+
+// ---
+
+// favorite handling
+
+  void setFavorite(TranslationModel translationModel){
+    if(history.contains(translationModel)){
+      history[history.indexOf(translationModel)].setFavorite();
+    } else {
+      _addToHistory(translationModel);
+      setFavorite(translationModel);
+    }
+    // saveToSharedPrefs();
+    notifyListeners();
+  }
+
+
+// ---
+
+// shared prefs
+
+  // void readFromSharedPrefs() async {
+  //   SharedPreferences prefs = await SharedPreferences.getInstance();
+  //   final historyString = prefs.getString(kHistoryKey);
+  //   print(historyString);
+  //   if(historyString != ""){
+  //
+  //
+  //     Iterable historyStringList = json.decode(historyString!);
+  //
+  //     List<TranslationModel> translations =
+  //     List<TranslationModel>.from(historyStringList.map((e) => TranslationModel.fromJson(e)));
+  //
+  //     history = translations;
+  //
+  //   }
+  //
+  //   //history = ;
+  //
+  // }
+
+  // void saveToSharedPrefs() async {
+  //   SharedPreferences prefs = await SharedPreferences.getInstance();
+  //
+  //   var historyStringList = history.map((e) => e.toJson()).toString();
+  //   var stringToSave = historyStringList.substring(1, historyStringList.length-1);
+  //
+  //
+  //   prefs.setString(kHistoryKey, stringToSave);
+  //
+  // }
+
+
 
 // ---
 

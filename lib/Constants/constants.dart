@@ -71,6 +71,10 @@ TextStyle kTranslationTextStyle(double size, FontWeight weight){
   );
 }
 
+// ---
 
+// shared prefs key
+
+String kHistoryKey = "history";
 
 // ---
