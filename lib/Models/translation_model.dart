@@ -1,30 +1,33 @@
+import 'package:translate/Models/implementable_translation.dart';
 import 'package:translator/translator.dart';
 
-class TranslationModel{
-  final Translation translation;
-  bool isFavorite = false;
 
-  TranslationModel(this.translation);
+class TranslationModel{
+  final ImplementableTranslation translation;
+  bool isFavorite;
+
+
+  TranslationModel(this.translation, [this.isFavorite = false]);
 
   void setFavorite(){
     isFavorite = !isFavorite;
   }
 
+  TranslationModel.fromJson(Map<String,dynamic> json)
+    : translation = ImplementableTranslation.fromJson(json["translation"]),
+  isFavorite = json["isFavorite"];
+
+  // static TranslationModel fromJson(Map<String, dynamic> json){
+  //   return TranslationModel(json["translation"], json["isFavorite"]);
+  // }
+
   static TranslationModel fromJson2(dynamic json) {
-    return TranslationModel(json["translation"]);
+    return TranslationModel(json["translation"], json["isFavorite"]);
   }
 
-  TranslationModel.fromJson(Map<String, dynamic> json)
-      : translation = json["translation"],
-        isFavorite = json["isFavorite"];
 
   Map<String, dynamic> toJson() => {
-    "translation": {
-      "text": translation.text,
-      "source": translation.source,
-      "targetLanguage": translation.targetLanguage,
-      "sourceLanguage": translation.sourceLanguage
-    },
+    'translation': translation.toJson(),
     'isFavorite': isFavorite,
   };
 }

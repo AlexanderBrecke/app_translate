@@ -3,14 +3,15 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:translate/Constants/constants.dart';
+import 'package:translate/Models/implementable_translation.dart';
 import 'package:translate/Models/translation_model.dart';
 import 'package:translator/translator.dart';
 
 class AppDataModel extends ChangeNotifier{
 
-  // AppDataModel(){
-  //   readFromSharedPrefs();
-  // }
+  AppDataModel(){
+    readFromSharedPrefs();
+  }
 
   // Language handling
 
@@ -78,7 +79,7 @@ class AppDataModel extends ChangeNotifier{
       translator.translate(textFieldController.text, from: fromLanguage.getValue(), to: toLanguage.getValue()).then((value) {
 
         currentTranslation = value;
-        TranslationModel model = TranslationModel(value);
+        TranslationModel model = TranslationModel(ImplementableTranslation.fromTranslation(value));
         currentTranslationModel = model;
         notifyListeners();
       });
@@ -92,7 +93,8 @@ class AppDataModel extends ChangeNotifier{
 
   void historyAdd(){
     if(!history.contains(currentTranslationModel!)){
-      history.add(currentTranslationModel!);
+      _addToHistory(currentTranslationModel!);
+      // history.add(currentTranslationModel!);
     }
     notifyListeners();
   }
@@ -106,7 +108,7 @@ class AppDataModel extends ChangeNotifier{
 
   void _addToHistory(TranslationModel translation){
     history.add(translation);
-    // saveToSharedPrefs();
+    saveToSharedPrefs();
     notifyListeners();
   }
 
@@ -129,7 +131,7 @@ class AppDataModel extends ChangeNotifier{
       _addToHistory(translationModel);
       setFavorite(translationModel);
     }
-    // saveToSharedPrefs();
+    saveToSharedPrefs();
     notifyListeners();
   }
 
@@ -138,36 +140,32 @@ class AppDataModel extends ChangeNotifier{
 
 // shared prefs
 
-  // void readFromSharedPrefs() async {
-  //   SharedPreferences prefs = await SharedPreferences.getInstance();
-  //   final historyString = prefs.getString(kHistoryKey);
-  //   print(historyString);
-  //   if(historyString != ""){
-  //
-  //
-  //     Iterable historyStringList = json.decode(historyString!);
-  //
-  //     List<TranslationModel> translations =
-  //     List<TranslationModel>.from(historyStringList.map((e) => TranslationModel.fromJson(e)));
-  //
-  //     history = translations;
-  //
-  //   }
-  //
-  //   //history = ;
-  //
-  // }
+  void readFromSharedPrefs() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    final historyString = prefs.getString(kHistoryKey);
+    if(historyString != null){
+      final decodedHistoryString = jsonDecode(historyString);
 
-  // void saveToSharedPrefs() async {
-  //   SharedPreferences prefs = await SharedPreferences.getInstance();
-  //
-  //   var historyStringList = history.map((e) => e.toJson()).toString();
-  //   var stringToSave = historyStringList.substring(1, historyStringList.length-1);
-  //
-  //
-  //   prefs.setString(kHistoryKey, stringToSave);
-  //
-  // }
+      final iterableHistory = decodedHistoryString as Iterable<dynamic>;
+      history = List<TranslationModel>.of(iterableHistory.map((e) => TranslationModel.fromJson(e)));
+      notifyListeners();
+    }
+    else{
+      return;
+    }
+  }
+
+  void saveToSharedPrefs() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+
+    var historyStringList = history.map((e) => e.toJson()).toList();
+
+    var encodedHistory = json.encode(historyStringList);
+    // print(encodedHistory.runtimeType);
+    prefs.setString(kHistoryKey, encodedHistory);
+
+
+  }
 
 
 
