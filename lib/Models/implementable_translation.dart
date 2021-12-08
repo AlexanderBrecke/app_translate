@@ -1,8 +1,7 @@
-
 import 'package:translate/Models/implementable_language.dart';
 import 'package:translator/translator.dart';
 
-
+// This was created because we could not encode and decode the Translation class from translator dependency.
 class ImplementableTranslation{
   late final String text;
   late final String source;
@@ -30,5 +29,6 @@ class ImplementableTranslation{
     "sourceLanguage": sourceLanguage.toJson(),
     "targetLanguage": targetLanguage.toJson(),
   };
+
 
 }

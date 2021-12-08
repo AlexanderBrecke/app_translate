@@ -4,7 +4,7 @@ import 'package:translate/Models/app_data_model.dart';
 import 'package:translate/Views/dropdownbutton.dart';
 import 'package:translate/Views/history_list_view.dart';
 import 'package:translate/Views/input_card_view.dart';
-import 'package:translate/Views/translate_card_view.dart';
+import 'package:translate/Views/translation_card_view.dart';
 import 'package:provider/provider.dart';
 
 class MainPage extends StatefulWidget {
@@ -22,13 +22,9 @@ class _MainPageState extends State<MainPage> {
 
     return Scaffold(
       appBar: _appBar(),
-
-
       body: Center(
-
         child: Column(
           children: [
-
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
 
@@ -40,17 +36,18 @@ class _MainPageState extends State<MainPage> {
                 CustomDropDownButton(kToOrFrom.TO),
               ],
             ),
-            Divider(),
 
+            Divider(),
             InputCardView(),
-
             Divider(),
 
-            if(Provider.of<AppDataModel>(context).currentTranslation != null) ... [
-              TranslateCard(),
+            // Only input translation card if we have a current translation
+            if(Provider.of<AppDataModel>(context).currentTranslationModel != null) ... [
+              TranslationCard(),
               Divider(),
             ],
 
+            // Only show history if there is any to show
             if(Provider.of<AppDataModel>(context).history.length > 0) ... [
               HistoryListView(),
             ],

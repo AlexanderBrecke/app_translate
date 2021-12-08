@@ -1,7 +1,6 @@
-
 import 'package:translator/src/langs/language.dart';
 
-
+// This was created because we could not encode and decode the Language class from translator dependency.
 class ImplementableLanguage{
 
   late final String code;

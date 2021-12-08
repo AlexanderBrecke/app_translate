@@ -1,110 +1,117 @@
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:translate/Constants/constants.dart';
+import 'package:translate/Constants/language_list.dart';
+import 'package:translate/Models/implementable_language.dart';
 import 'package:translate/Models/implementable_translation.dart';
 import 'package:translate/Models/translation_model.dart';
 import 'package:translator/translator.dart';
 
 class AppDataModel extends ChangeNotifier{
 
+  // Initialize the data model
   AppDataModel(){
+    initializeLanguages();
     readFromSharedPrefs();
   }
 
-  // Language handling
+// Language handling
 
-  kSupportedLanguages fromLanguage = kSupportedLanguages.Norwegian;
-  kSupportedLanguages toLanguage = kSupportedLanguages.Norwegian;
+  late ImplementableLanguage fromLang;
+  late ImplementableLanguage toLang;
 
-  void setLanguage(kToOrFrom toOrFrom, kSupportedLanguages lang){
+  void initializeLanguages(){
+    fromLang = getLanguageFromString("Automatic");
+    toLang = getLanguageFromString("English");
+  }
 
-    if(toOrFrom == kToOrFrom.TO){
-      toLanguage = lang;
-    } else {
-      fromLanguage = lang;
-    }
+  void setLanguage(kToOrFrom toOrFrom, ImplementableLanguage lang){
+    toOrFrom == kToOrFrom.TO ? toLang = lang : fromLang = lang;
     notifyListeners();
   }
 
   void switchLanguages(){
-    kSupportedLanguages from = fromLanguage;
-    kSupportedLanguages to = toLanguage;
+    ImplementableLanguage newFrom = fromLang;
+    ImplementableLanguage newTo = toLang;
 
-    if(from != to){
-      fromLanguage = to;
-      toLanguage = from;
-      notifyListeners();
+    if(newFrom  != newTo){
+      fromLang = newTo;
+      toLang = newFrom;
     }
+    notifyListeners();
   }
 
-  kSupportedLanguages getLanguage(String lang){
-    String languages = "kSupportedLanguages.";
-    return kSupportedLanguages.values.firstWhere((e) => e.toString() == languages+lang);
+  ImplementableLanguage getLanguageFromString(String input){
+    var entry = kLangs.entries.firstWhere((element) => element.value == input);
+    return ImplementableLanguage(entry.key, entry.value);
   }
 
-  // ---
+// ---
 
 
-  // Input handling
+// translation
 
   final textFieldController = TextEditingController();
 
-  // ---
-
-
-// translation handling
-
   final translator = GoogleTranslator();
-  Translation? currentTranslation;
 
   TranslationModel? currentTranslationModel;
   
   void throttledTranslate(String input){
-    Future.delayed(Duration(milliseconds: 500), () {
+    Future.delayed(const Duration(milliseconds: 500), () {
       if(input == textFieldController.text){
-        translate(input);
-      } else {
-        translate(textFieldController.text);
+        _runTranslationCheck(input);
       }
     });
+
   }
 
+  void _runTranslationCheck(String input){
+    currentTranslationModel != null ? {
+      if(currentTranslationModel!.translation.source != input){
+        _translate(input),
+      }
+    }
+    : {
+      _translate(input)
+    };
+  }
 
-  void translate(String input){
+  void _translate(String input){
 
     if(textFieldController.text != ""){
 
-      translator.translate(textFieldController.text, from: fromLanguage.getValue(), to: toLanguage.getValue()).then((value) {
-
-        currentTranslation = value;
+      translator.translate(input, from: fromLang.code, to: toLang.code).then((value) {
         TranslationModel model = TranslationModel(ImplementableTranslation.fromTranslation(value));
         currentTranslationModel = model;
         notifyListeners();
       });
     } else {
-      currentTranslation = null;
       currentTranslationModel = null;
       notifyListeners();
     }
 
   }
 
-  void historyAdd(){
-    if(!history.contains(currentTranslationModel!)){
-      _addToHistory(currentTranslationModel!);
-      // history.add(currentTranslationModel!);
-    }
+  void setCurrentTranslationModel(TranslationModel newCurrent){
+    currentTranslationModel = newCurrent;
     notifyListeners();
   }
 
-
 // ---
+
 
 // translation history
 
   List<TranslationModel> history = [];
+
+  void historyAdd(){
+    if(currentTranslationModel != null && !currentIsInHistory()){
+      _addToHistory(currentTranslationModel!);
+    }
+    notifyListeners();
+  }
 
   void _addToHistory(TranslationModel translation){
     history.add(translation);
@@ -112,17 +119,20 @@ class AppDataModel extends ChangeNotifier{
     notifyListeners();
   }
 
-  bool currentIsInHistory(){
-    return history.contains(currentTranslationModel);
+  void historyRemove(TranslationModel translation){
+    history.removeWhere((element) => element == translation);
+    saveToSharedPrefs();
+    notifyListeners();
   }
 
-  bool currentIsFavorite(){
-    return currentTranslationModel!.isFavorite;
-  }
+  bool currentIsInHistory() => history.contains(currentTranslationModel);
 
 // ---
 
+
 // favorite handling
+
+  bool currentIsFavorite() => currentTranslationModel!.isFavorite;
 
   void setFavorite(TranslationModel translationModel){
     if(history.contains(translationModel)){
@@ -135,8 +145,8 @@ class AppDataModel extends ChangeNotifier{
     notifyListeners();
   }
 
-
 // ---
+
 
 // shared prefs
 
@@ -153,6 +163,7 @@ class AppDataModel extends ChangeNotifier{
     else{
       return;
     }
+
   }
 
   void saveToSharedPrefs() async {
@@ -161,13 +172,8 @@ class AppDataModel extends ChangeNotifier{
     var historyStringList = history.map((e) => e.toJson()).toList();
 
     var encodedHistory = json.encode(historyStringList);
-    // print(encodedHistory.runtimeType);
     prefs.setString(kHistoryKey, encodedHistory);
-
-
   }
-
-
 
 // ---
 

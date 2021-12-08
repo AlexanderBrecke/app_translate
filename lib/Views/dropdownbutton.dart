@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:translate/Constants/constants.dart';
+import 'package:translate/Constants/language_list.dart';
 import 'package:translate/Models/app_data_model.dart';
 
+// View to create a dropdown button
 class CustomDropDownButton extends StatelessWidget {
   const CustomDropDownButton(this._toOrFrom, {Key? key}) : super(key: key);
   
@@ -13,9 +15,8 @@ class CustomDropDownButton extends StatelessWidget {
     return _dropDownButton(context);
   }
 
+  // Function to create the button
   Widget _dropDownButton(BuildContext context){
-
-    var suppLang = kSupportedLanguages.values.map((e) => e.toName()).toList();
 
     var provider = Provider.of<AppDataModel>(context);
 
@@ -25,21 +26,20 @@ class CustomDropDownButton extends StatelessWidget {
         child: DropdownButtonHideUnderline(
           child: DropdownButton(
 
-            isExpanded: true,
-            style: TextStyle(color: Colors.blueGrey),
+            hint: _toOrFrom == kToOrFrom.TO ? Text(provider.toLang.name) : Text(provider.fromLang.name),
 
-            hint: _toOrFrom == kToOrFrom.TO ? Text(provider.toLanguage.toName()) : Text(provider.fromLanguage.toName()),
-            items: suppLang.map((String value) {
-              return DropdownMenuItem<String>(
+            //populate the items from list of languages
+            items: kLangs.values.map((String value) {
+              return DropdownMenuItem(
                 value: value,
                 child: Text(value),
               );
             }).toList(),
+
+            // Set language in the provider according to what was chosen
             onChanged: (newValue){
               if(newValue != null){
-
-                var lang = provider.getLanguage(newValue.toString());
-
+                var lang = provider.getLanguageFromString(newValue.toString());
                 if(_toOrFrom == kToOrFrom.TO){
                   provider.setLanguage(_toOrFrom, lang);
                 } else {
@@ -47,6 +47,7 @@ class CustomDropDownButton extends StatelessWidget {
                 }
               }
             },
+
           ),
         ),
       ),

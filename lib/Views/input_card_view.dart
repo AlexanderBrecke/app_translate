@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:translate/Models/app_data_model.dart';
 
+// Card view for the input field
 class InputCardView extends StatelessWidget {
   const InputCardView({Key? key}) : super(key: key);
 
@@ -18,8 +19,6 @@ class InputCardView extends StatelessWidget {
       child: TextField(
         maxLines: 3,
         controller: provider.textFieldController,
-        // onChanged: provider.foo,
-
         textInputAction: TextInputAction.done,
 
         onChanged: (newVal){
@@ -28,6 +27,7 @@ class InputCardView extends StatelessWidget {
 
         onSubmitted: (newVal){
           provider.historyAdd();
+          provider.textFieldController.clear();
         },
         autocorrect: false,
       ),
