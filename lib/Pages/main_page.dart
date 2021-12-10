@@ -7,14 +7,7 @@ import 'package:translate/Views/input_card_view.dart';
 import 'package:translate/Views/translation_card_view.dart';
 import 'package:provider/provider.dart';
 
-class MainPage extends StatefulWidget {
-  const MainPage({Key? key}) : super(key: key);
-
-  @override
-  _MainPageState createState() => _MainPageState();
-}
-
-class _MainPageState extends State<MainPage> {
+class MainPage extends StatelessWidget {
 
   // --- Page ---
   @override
@@ -49,7 +42,11 @@ class _MainPageState extends State<MainPage> {
 
             // Only show history if there is any to show
             if(Provider.of<AppDataModel>(context).history.length > 0) ... [
-              HistoryListView(),
+              Row(
+                children: [
+                  HistoryListView(),
+                ],
+              ),
             ],
 
           ],

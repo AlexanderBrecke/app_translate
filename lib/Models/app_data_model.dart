@@ -121,6 +121,10 @@ class AppDataModel extends ChangeNotifier{
 
   void historyRemove(TranslationModel translation){
     history.removeWhere((element) => element == translation);
+    print(history.isEmpty);
+    if(history.isEmpty && textFieldController.text == ""){
+      currentTranslationModel = null;
+    }
     saveToSharedPrefs();
     notifyListeners();
   }
@@ -135,15 +139,56 @@ class AppDataModel extends ChangeNotifier{
   bool currentIsFavorite() => currentTranslationModel!.isFavorite;
 
   void setFavorite(TranslationModel translationModel){
+    // if(translationModel == currentTranslationModel){
+    //
+    // }
     if(history.contains(translationModel)){
       history[history.indexOf(translationModel)].setFavorite();
     } else {
       _addToHistory(translationModel);
       setFavorite(translationModel);
     }
+    // translationModel.setFavorite();
+    // if(translationModel.isFavorite){
+    //   _addFavorite(translationModel);
+    // }
+    // else{
+    //   _removeFavorite(translationModel);
+    // }
+    //
+    // print(favorites);
+    // print(history);
+
     saveToSharedPrefs();
     notifyListeners();
   }
+
+  // void _addFavorite(TranslationModel translationModel){
+  //   if(history.contains(translationModel)){
+  //     history.remove(translationModel);
+  //   }
+  //   favorites.add(translationModel);
+  // }
+  //
+  // void _removeFavorite(TranslationModel translationModel){
+  //   if(favorites.contains(translationModel)){
+  //     favorites.remove(translationModel);
+  //   }
+  //   history.add(translationModel);
+  // }
+
+  // void addToFavorite(TranslationModel translationModel){
+  //   if(history.contains(translationModel)) {
+  //     translationModel.setFavorite();
+  //     favorites.add(translationModel);
+  //     history.remove(translationModel);
+  //   } else {
+  //     _addToHistory(translationModel);
+  //     addToFavorite(translationModel);
+  //   }
+  // }
+
+
 
 // ---
 
