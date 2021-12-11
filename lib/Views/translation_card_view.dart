@@ -22,24 +22,29 @@ class TranslationCard extends StatelessWidget {
       child: Container(
 
         height: (1/5 * MediaQuery.of(context).size.height),
-        child: Column(
+        child: SingleChildScrollView(
+          child: Column(
 
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
 
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 8.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _languageTitle(provider),
-                  _translationText(provider),
-                  SizedBox(height: 1/100 * MediaQuery.of(context).size.height),
-                  _sourceText(provider),
-                ],
-              )
-            ),
-          ],
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 8.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _languageTitle(provider),
+                    _translationText(provider),
+                    //SizedBox(height: 1/75 * MediaQuery.of(context).size.height),
+                    Divider(),
+                    _sourceLanguageTitle(provider),
+                    SizedBox(height: 1/200 * MediaQuery.of(context).size.height),
+                    _sourceText(provider),
+                  ],
+                )
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -51,12 +56,15 @@ class TranslationCard extends StatelessWidget {
       children: [
         Text(
           provider.currentTranslationModel!.translation.targetLanguage.name,
-          style: kTranslationTextStyle(14.0, FontWeight.w300),
+          style: kTranslationTextStyle(16.0, FontWeight.w400),
         ),
         Spacer(),
 
         IconButton(onPressed:() {
-          provider.setFavorite(provider.currentTranslationModel!);
+          provider.changeFavoriteStatus(provider.currentTranslationModel!);
+          if(provider.textFieldController.text != ""){
+            provider.textFieldController.clear();
+          }
         }, icon: provider.currentIsFavorite() ? kStarFilledIcon : kStarEmptyIcon),
       ],
     );
@@ -66,15 +74,24 @@ class TranslationCard extends StatelessWidget {
   Widget _translationText(AppDataModel provider){
     return Text(
         provider.currentTranslationModel!.translation.text,
-      style: kTranslationTextStyle(14.0, FontWeight.normal),
+      style: kTranslationTextStyle(16.0, FontWeight.normal),
     );
   }
+
+
 
   // Function to set the source text
   Widget _sourceText(AppDataModel provider){
     return Text(
       provider.currentTranslationModel!.translation.source,
-      style: kTranslationTextStyle(10.0, FontWeight.w300),
+      style: kTranslationTextStyle(12.0, FontWeight.w400),
+    );
+  }
+
+  Widget _sourceLanguageTitle(AppDataModel provider){
+    return Text(
+      provider.currentTranslationModel!.translation.sourceLanguage.name,
+      style: kTranslationTextStyle(14, FontWeight.w400),
     );
   }
 

@@ -13,7 +13,8 @@ class AppDataModel extends ChangeNotifier{
   // Initialize the data model
   AppDataModel(){
     initializeLanguages();
-    readFromSharedPrefs();
+    _getListFromSharedPrefs("History", kHistoryKey);
+    _getListFromSharedPrefs("Favorites", kFavoritesKey);
   }
 
 // Language handling
@@ -50,7 +51,7 @@ class AppDataModel extends ChangeNotifier{
 // ---
 
 
-// translation
+// translation handling
 
   final textFieldController = TextEditingController();
 
@@ -81,7 +82,6 @@ class AppDataModel extends ChangeNotifier{
   void _translate(String input){
 
     if(textFieldController.text != ""){
-
       translator.translate(input, from: fromLang.code, to: toLang.code).then((value) {
         TranslationModel model = TranslationModel(ImplementableTranslation.fromTranslation(value));
         currentTranslationModel = model;
@@ -102,31 +102,27 @@ class AppDataModel extends ChangeNotifier{
 // ---
 
 
-// translation history
+// history handling
 
+  bool shouldShowHistoryList = false;
   List<TranslationModel> history = [];
+
+
+  void showHistoryList(bool newValue){
+    shouldShowHistoryList = newValue;
+    notifyListeners();
+  }
 
   void historyAdd(){
     if(currentTranslationModel != null && !currentIsInHistory()){
       _addToHistory(currentTranslationModel!);
     }
-    notifyListeners();
   }
 
   void _addToHistory(TranslationModel translation){
     history.add(translation);
-    saveToSharedPrefs();
-    notifyListeners();
-  }
-
-  void historyRemove(TranslationModel translation){
-    history.removeWhere((element) => element == translation);
-    print(history.isEmpty);
-    if(history.isEmpty && textFieldController.text == ""){
-      currentTranslationModel = null;
-    }
-    saveToSharedPrefs();
-    notifyListeners();
+    showHistoryList(true);
+    _finalizeListChange();
   }
 
   bool currentIsInHistory() => history.contains(currentTranslationModel);
@@ -134,90 +130,96 @@ class AppDataModel extends ChangeNotifier{
 // ---
 
 
-// favorite handling
+// history and favorite mediary
 
-  bool currentIsFavorite() => currentTranslationModel!.isFavorite;
-
-  void setFavorite(TranslationModel translationModel){
-    // if(translationModel == currentTranslationModel){
-    //
-    // }
-    if(history.contains(translationModel)){
-      history[history.indexOf(translationModel)].setFavorite();
-    } else {
-      _addToHistory(translationModel);
-      setFavorite(translationModel);
+  void _checkIfShouldShowHistory(){
+    if(history.isEmpty && favorites.isNotEmpty){
+      showHistoryList(false);
+    } else if(favorites.isEmpty && history.isNotEmpty){
+      showHistoryList(true);
     }
-    // translationModel.setFavorite();
-    // if(translationModel.isFavorite){
-    //   _addFavorite(translationModel);
-    // }
-    // else{
-    //   _removeFavorite(translationModel);
-    // }
-    //
-    // print(favorites);
-    // print(history);
+  }
 
-    saveToSharedPrefs();
+  void _finalizeListChange(){
+    _checkIfShouldShowHistory();
+    _saveToSharedPrefs();
     notifyListeners();
   }
 
-  // void _addFavorite(TranslationModel translationModel){
-  //   if(history.contains(translationModel)){
-  //     history.remove(translationModel);
-  //   }
-  //   favorites.add(translationModel);
-  // }
-  //
-  // void _removeFavorite(TranslationModel translationModel){
-  //   if(favorites.contains(translationModel)){
-  //     favorites.remove(translationModel);
-  //   }
-  //   history.add(translationModel);
-  // }
+  void _moveBetweenLists(TranslationModel translationModel, List<TranslationModel> fromList, List<TranslationModel> toList){
+    if(fromList.contains(translationModel)){
+      fromList.remove(translationModel);
+    }
+    toList.add(translationModel);
+    _finalizeListChange();
+  }
 
-  // void addToFavorite(TranslationModel translationModel){
-  //   if(history.contains(translationModel)) {
-  //     translationModel.setFavorite();
-  //     favorites.add(translationModel);
-  //     history.remove(translationModel);
-  //   } else {
-  //     _addToHistory(translationModel);
-  //     addToFavorite(translationModel);
-  //   }
-  // }
+  void deleteFromList(TranslationModel translationModel, List<TranslationModel> listToDeleteFrom){
+    if(listToDeleteFrom.contains(translationModel)){
+      listToDeleteFrom.remove(translationModel);
+    }
+    if(translationModel == currentTranslationModel){
+      currentTranslationModel = null;
+    }
+    _finalizeListChange();
+  }
+
+// ---
 
 
+// favorite handling
+
+  List<TranslationModel> favorites = [];
+
+  void changeFavoriteStatus(TranslationModel translationModel){
+    translationModel.setFavorite();
+
+    translationModel.isFavorite ?
+    _moveBetweenLists(translationModel, history, favorites) :
+    _moveBetweenLists(translationModel, favorites, history);
+
+    currentTranslationModel = translationModel;
+    showHistoryList(!translationModel.isFavorite);
+  }
+
+  bool currentIsFavorite() => currentTranslationModel!.isFavorite;
 
 // ---
 
 
 // shared prefs
 
-  void readFromSharedPrefs() async {
+  void _getListFromSharedPrefs(String listToGet, String key) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    final historyString = prefs.getString(kHistoryKey);
-    if(historyString != null){
-      final decodedHistoryString = jsonDecode(historyString);
-
-      final iterableHistory = decodedHistoryString as Iterable<dynamic>;
-      history = List<TranslationModel>.of(iterableHistory.map((e) => TranslationModel.fromJson(e)));
+    final json = prefs.getString(key);
+    if(json != null){
+      final decoded = jsonDecode(json);
+      final iterable = decoded as Iterable<dynamic>;
+      var list = List<TranslationModel>.of(iterable.map((e) => TranslationModel.fromJson(e)));
+      if(listToGet == "History"){
+        history = list;
+      } else if(listToGet == "Favorites") {
+        favorites = list;
+      }
+      _checkIfShouldShowHistory();
       notifyListeners();
-    }
-    else{
+    } else {
       return;
     }
-
   }
 
-  void saveToSharedPrefs() async {
+
+  void _saveToSharedPrefs() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
 
     var historyStringList = history.map((e) => e.toJson()).toList();
-
     var encodedHistory = json.encode(historyStringList);
+
+    var favoritesStringList = favorites.map((e) => e.toJson()).toList();
+    var encodedFavorites = json.encode(favoritesStringList);
+
     prefs.setString(kHistoryKey, encodedHistory);
+    prefs.setString(kFavoritesKey, encodedFavorites);
   }
 
 // ---

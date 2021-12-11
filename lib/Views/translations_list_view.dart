@@ -5,23 +5,23 @@ import 'package:translate/Models/app_data_model.dart';
 import 'package:translate/Models/translation_model.dart';
 
 // View to show the history list of translations
-class HistoryListView extends StatelessWidget {
-  const HistoryListView({Key? key}) : super(key: key);
+class TranslationsListView extends StatelessWidget {
+  const TranslationsListView(this.showHistory, {Key? key}) : super(key: key);
+
+  final bool showHistory;
 
   @override
   Widget build(BuildContext context) {
     var provider = Provider.of<AppDataModel>(context);
-    return Expanded(
-      child: Card(
-        child: ListView(
-          children: provider.history.reversed.map((e) => _buildHistory(e, context)).toList(),
-          //provider.history.map(_buildHistory).toList(),
-        ),
+    return Flexible(
+      child: ListView(
+        children: showHistory ? provider.history.reversed.map((e) => _buildHistory(e, context)).toList() :
+            provider.favorites.reversed.map((e) => _buildHistory(e, context)).toList(),
       ),
     );
   }
 
-  // Function to create the list tile that goes in the history list
+  // Function to create the list tile that goes in the list
   // Make it dismissible so we can delete items from the history
   Widget _buildHistory(TranslationModel model, BuildContext context){
     var provider = Provider.of<AppDataModel>(context, listen: false);
@@ -29,7 +29,9 @@ class HistoryListView extends StatelessWidget {
       key: Key(model.translation.text),
       direction: DismissDirection.endToStart,
       onDismissed: (direction){
-        provider.historyRemove(model);
+        showHistory ?
+            provider.deleteFromList(model, provider.history) :
+            provider.deleteFromList(model, provider.favorites);
       },
       background: Container(
         color: Colors.redAccent,
@@ -39,17 +41,23 @@ class HistoryListView extends StatelessWidget {
       ),
 
       child: ListTile(
-        title: Text(model.translation.text),
-        subtitle: Text(model.translation.source),
-        trailing: model.isFavorite ? IconButton(onPressed: () {
-          provider.setFavorite(model);
-        }, icon: kStarFilledIcon) : IconButton(onPressed: (){
-          provider.setFavorite(model);
-        }, icon: kStarEmptyIcon),
+        title: Text(model.translation.text,
+          maxLines: 3,
+        ),
+        subtitle: Text(model.translation.source,
+          maxLines: 3,
+        ),
+        trailing: IconButton(
+          onPressed: (){
+            provider.changeFavoriteStatus(model);
+          },
+          icon: model.isFavorite ?
+            kStarFilledIcon :
+            kStarEmptyIcon,
+        ),
         onTap: (){
           provider.setCurrentTranslationModel(model);
         },
-
       ),
     );
   }

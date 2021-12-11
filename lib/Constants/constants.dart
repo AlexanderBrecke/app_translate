@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 final kAppTheme = ThemeData.light().copyWith(
-  highlightColor: Colors.green,
+  highlightColor: Colors.blue[600],
   primaryColor: Colors.blue[600],
   scaffoldBackgroundColor: Colors.grey[300],
 );
@@ -35,5 +35,6 @@ TextStyle kTranslationTextStyle(double size, FontWeight weight){
 // shared prefs key
 
 String kHistoryKey = "history";
+String kFavoritesKey = "favorites";
 
 // ---
